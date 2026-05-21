@@ -1,0 +1,357 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Ocean Color Palette */
+  --color-ocean-50: #e6f4fa;
+  --color-ocean-100: #b3dff0;
+  --color-ocean-200: #80cae6;
+  --color-ocean-300: #4db5dc;
+  --color-ocean-400: #26a5d4;
+  --color-ocean-500: #0891b2;
+  --color-ocean-600: #0e7490;
+  --color-ocean-700: #0c5e75;
+  --color-ocean-800: #0a4a5c;
+  --color-ocean-900: #083344;
+  --color-ocean-950: #051e2c;
+
+  --color-cyan-50: #ecfeff;
+  --color-cyan-100: #cffafe;
+  --color-cyan-200: #a5f3fc;
+  --color-cyan-300: #67e8f9;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-500: #06b6d4;
+
+  --color-aqua-400: #2dd4bf;
+  --color-aqua-500: #14b8a6;
+
+  --color-deep-900: #0b1120;
+  --color-deep-800: #0f172a;
+  --color-deep-700: #1e293b;
+  --color-deep-600: #334155;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b1120;
+    --foreground: #e2e8f0;
+  }
+}
+
+[data-theme="dark"] {
+  --background: #0b1120;
+  --foreground: #e2e8f0;
+}
+
+[data-theme="light"] {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+/* ===== BASE STYLES ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #0891b2, #06b6d4);
+  border-radius: 4px;
+}
+
+/* ===== GLASSMORPHISM UTILITIES ===== */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-card {
+  background: rgba(8, 145, 178, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(8, 145, 178, 0.12);
+}
+
+/* ===== GRADIENT UTILITIES ===== */
+.gradient-ocean {
+  background: linear-gradient(135deg, #083344 0%, #0891b2 50%, #06b6d4 100%);
+}
+
+.gradient-ocean-dark {
+  background: linear-gradient(180deg, #0b1120 0%, #083344 50%, #0c5e75 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #22d3ee, #06b6d4, #2dd4bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== ANIMATION UTILITIES ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(8, 145, 178, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(8, 145, 178, 0.6); }
+}
+
+@keyframes bubble {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+@keyframes wave {
+  0% { transform: translateX(0) translateZ(0) scaleY(1); }
+  50% { transform: translateX(-25%) translateZ(0) scaleY(0.55); }
+  100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ===== BUBBLE EFFECT ===== */
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(6, 182, 212, 0.3), rgba(8, 145, 178, 0.05));
+  border: 1px solid rgba(6, 182, 212, 0.15);
+  animation: bubble linear infinite;
+}
+
+/* ===== CTA BUTTON STYLES ===== */
+.btn-primary {
+  background: linear-gradient(135deg, #0891b2, #06b6d4);
+  color: white;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(8, 145, 178, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(8, 145, 178, 0.5);
+  background: linear-gradient(135deg, #0e7490, #0891b2);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #22d3ee;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(34, 211, 238, 0.4);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  border-color: #22d3ee;
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
+}
+
+/* ===== SECTION STYLES ===== */
+.section-dark {
+  background: linear-gradient(180deg, #0b1120 0%, #0f172a 100%);
+}
+
+.section-darker {
+  background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+}
+
+/* ===== WHATSAPP BUTTON ===== */
+.whatsapp-float {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  width: 60px;
+  height: 60px;
+  background: #25d366;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(37, 211, 102, 0.6);
+}
+
+/* ===== CARD HOVER EFFECTS ===== */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 60px rgba(8, 145, 178, 0.15);
+}
+
+/* ===== FISH CARD ===== */
+.fish-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fish-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 40%, rgba(8, 51, 68, 0.95) 100%);
+  z-index: 1;
+  transition: all 0.4s ease;
+}
+
+.fish-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 60px rgba(6, 182, 212, 0.2);
+}
+
+.fish-card:hover::before {
+  background: linear-gradient(180deg, transparent 20%, rgba(8, 51, 68, 0.98) 100%);
+}
+
+/* ===== TIMELINE ===== */
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, #0891b2, #06b6d4, transparent);
+  transform: translateX(-50%);
+}
+
+@media (max-width: 768px) {
+  .timeline-line {
+    left: 20px;
+  }
+}
+
+/* ===== FORM STYLES ===== */
+.form-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(8, 145, 178, 0.2);
+  border-radius: 12px;
+  padding: 14px 18px;
+  color: #e2e8f0;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  width: 100%;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #06b6d4;
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.form-input::placeholder {
+  color: rgba(148, 163, 184, 0.6);
+}
+
+/* ===== NAV BLUR ===== */
+.nav-blur {
+  background: rgba(11, 17, 32, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(8, 145, 178, 0.1);
+}
+
+/* ===== GLOW EFFECT ===== */
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.15), 0 0 60px rgba(6, 182, 212, 0.05);
+}
