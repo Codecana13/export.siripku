@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { absoluteUrl } from '@/lib/site';
 import {
@@ -35,21 +36,25 @@ export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     staticEntry(`/category/${slug}`, { changeFrequency: 'weekly', priority: 0.6 })
   );
 
-  const supabase = await createServerSupabaseClient();
-  const { data: articles } = await supabase
-    .from('articles')
-    .select('slug, updated_at, created_at')
-    .eq('status', 'published')
-    .order('updated_at', { ascending: false });
+  let articlePages: MetadataRoute.Sitemap = [];
 
-  const articlePages: MetadataRoute.Sitemap = (articles ?? [])
+  if (isSupabaseConfigured()) {
+    const supabase = await createServerSupabaseClient();
+    const { data: articles } = await supabase
+      .from('articles')
+      .select('slug, updated_at, created_at')
+      .eq('status', 'published')
+      .order('updated_at', { ascending: false });
+
+    articlePages = (articles ?? [])
     .filter((article) => article.slug)
-    .map((article) => ({
-      url: absoluteUrl(`/blog/${article.slug}`),
-      lastModified: new Date(article.updated_at || article.created_at || Date.now()),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    }));
+      .map((article) => ({
+        url: absoluteUrl(`/blog/${article.slug}`),
+        lastModified: new Date(article.updated_at || article.created_at || Date.now()),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+  }
 
   return [...staticPages, ...speciesPages, ...categoryPages, ...articlePages];
 }

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { UserRole, getPermissions, Permission } from '@/lib/auth/roles';
-import type { User } from '@supabase/supabase-js';
+import type { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 
 interface Profile {
   id: string;
@@ -33,29 +33,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
+
     const getUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        setUser(authUser);
 
-        if (user) {
+        if (authUser) {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', user.id)
+            .eq('id', authUser.id)
             .single();
 
           if (profileData) {
             setProfile(profileData as Profile);
           } else {
-            // Auto-create profile for new users
             const newProfile: Profile = {
-              id: user.id,
-              email: user.email || '',
-              full_name: user.user_metadata?.full_name || null,
+              id: authUser.id,
+              email: authUser.email || '',
+              full_name: authUser.user_metadata?.full_name || null,
               avatar_url: null,
               role: 'content_writer',
             };
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (_event: AuthChangeEvent, session: Session | null) => {
         setUser(session?.user ?? null);
         if (session?.user) {
           const { data: profileData } = await supabase
@@ -92,6 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    const supabase = createClient();
+    if (!supabase) return;
+
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);

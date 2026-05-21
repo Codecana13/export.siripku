@@ -6,6 +6,8 @@ import WhatsAppButton from '@/components/WhatsAppButton';
 import { Calendar, User, ArrowRight, Tag } from 'lucide-react';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Blog — Ornamental Fish Export Guides & Industry Insights',
   description: 'Expert guides on ornamental fish export from Indonesia. Learn about guppies, discus, bettas, shipping standards, and international trade tips from Siripku Export.',
