@@ -73,6 +73,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://export.siripku.id",
   },
+  verification: {
+    google: "Hf-hqnHsGNTfTs-KmBGQfCMuHiFoKfZcLbU3DRdWWAw",
+  },
 };
 
 const jsonLd = {

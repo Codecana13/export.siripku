@@ -20,8 +20,30 @@ export default function InquiryForm() {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [senderEmail, setSenderEmail] = useState("");
+  const [waMessage, setWaMessage] = useState("");
+  const [emailVerification, setEmailVerification] = useState("");
+  const [emailError, setEmailError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // Strict email validation function
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) && email.length > 5 && email.length < 254;
+  };
+
+  const handleEmailVerificationChange = (value: string) => {
+    setEmailVerification(value);
+    if (value && value !== senderEmail) {
+      setEmailError("❌ Email doesn't match. Please verify carefully.");
+    } else if (value && !validateEmail(value)) {
+      setEmailError("❌ Invalid email format.");
+    } else if (value === senderEmail && validateEmail(value)) {
+      setEmailError("");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -35,9 +57,60 @@ export default function InquiryForm() {
     const quantity = formData.get("quantity") as string;
     const message = formData.get("message") as string;
 
-    // Build WhatsApp message
-    const waMessage = `Hello Siripku Export,%0AI am interested in importing ornamental fish.%0A%0AName: ${encodeURIComponent(name)}%0ACompany: ${encodeURIComponent(company)}%0ACountry: ${encodeURIComponent(country)}%0AWhatsApp: ${encodeURIComponent(whatsapp)}%0AEmail: ${encodeURIComponent(email)}%0AFish Type: ${encodeURIComponent(fish)}%0AEstimated Quantity: ${encodeURIComponent(quantity)}%0AMessage: ${encodeURIComponent(message)}`;
+    // Validate email format on client side
+    if (!validateEmail(email)) {
+      alert("❌ Please enter a valid email address.");
+      setIsSubmitting(false);
+      return;
+    }
 
+    // Build WhatsApp message
+    const waMsg = `Hello Siripku Export,%0AI am interested in importing ornamental fish.%0A%0AName: ${encodeURIComponent(name)}%0ACompany: ${encodeURIComponent(company)}%0ACountry: ${encodeURIComponent(country)}%0AWhatsApp: ${encodeURIComponent(whatsapp)}%0AEmail: ${encodeURIComponent(email)}%0AFish Type: ${encodeURIComponent(fish)}%0AEstimated Quantity: ${encodeURIComponent(quantity)}%0AMessage: ${encodeURIComponent(message)}`;
+
+    try {
+      // Send email via API
+      const response = await fetch("/api/inquiries/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          company,
+          country,
+          phone: whatsapp,
+          fish,
+          quantity,
+          message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send inquiry");
+      }
+
+      // Show email verification dialog
+      setSenderEmail(email);
+      setWaMessage(waMsg);
+      setEmailVerification("");
+      setEmailError("");
+      setShowEmailDialog(true);
+    } catch (error) {
+      console.error("Error sending inquiry:", error);
+      const errorMsg = error instanceof Error ? error.message : "Failed to send inquiry. Please try again.";
+      alert("❌ " + errorMsg);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleContinueToWhatsApp = () => {
+    setShowEmailDialog(false);
+    setEmailVerification("");
+    setEmailError("");
+    
     // Open WhatsApp
     window.open(`https://wa.me/6289652456206?text=${waMessage}`, "_blank");
 
@@ -48,7 +121,79 @@ export default function InquiryForm() {
   };
 
   return (
-    <section id="inquiry" className="relative py-24 lg:py-32 section-darker overflow-hidden">
+    <>
+      {/* Email Dialog */}
+      {showEmailDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-8 max-w-md w-full border border-cyan-500/20"
+          >
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">✉️</div>
+              <h3 className="text-2xl font-bold text-white mb-2">Verify Your Email</h3>
+              <p className="text-gray-400">Confirm your email to prevent spam</p>
+            </div>
+
+            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 mb-6">
+              <p className="text-xs text-gray-400 mb-2">Your email:</p>
+              <p className="text-lg font-semibold text-cyan-400 break-all">{senderEmail}</p>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Re-enter your email to confirm *
+                </label>
+                <input
+                  type="email"
+                  value={emailVerification}
+                  onChange={(e) => handleEmailVerificationChange(e.target.value)}
+                  placeholder="Type your email again..."
+                  className="w-full px-4 py-2.5 rounded-lg bg-slate-700 border border-slate-600 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                />
+                {emailError && (
+                  <p className="text-xs text-red-400 mt-2">{emailError}</p>
+                )}
+                {!emailError && emailVerification === senderEmail && emailVerification && (
+                  <p className="text-xs text-emerald-400 mt-2">✅ Email verified!</p>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-400 leading-relaxed">
+                📧 A confirmation email will be sent to <strong>{senderEmail}</strong>
+              </p>
+              <p className="text-xs text-gray-400 leading-relaxed">
+                💬 Our team will contact you via WhatsApp within 2 hours
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleContinueToWhatsApp}
+                disabled={!emailVerification || emailVerification !== senderEmail || !validateEmail(emailVerification)}
+                className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-slate-600 disabled:to-slate-600"
+              >
+                {emailVerification === senderEmail && validateEmail(emailVerification) ? "✅ Continue to WhatsApp" : "Verify Email to Continue"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowEmailDialog(false);
+                  setEmailVerification("");
+                  setEmailError("");
+                  setIsSubmitting(false);
+                }}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      <section id="inquiry" className="relative py-24 lg:py-32 section-darker overflow-hidden">
       {/* Background effects */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -252,11 +397,11 @@ export default function InquiryForm() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Sending...
+                        Sending Inquiry...
                       </>
                     ) : (
                       <>
-                        Submit Inquiry via WhatsApp
+                        Send Inquiry to Export Team
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M5 12h14M12 5l7 7-7 7" />
                         </svg>
@@ -265,7 +410,7 @@ export default function InquiryForm() {
                   </button>
 
                   <p className="text-xs text-gray-500 text-center">
-                    By submitting, you&apos;ll be redirected to WhatsApp with a pre-filled message for faster response.
+                    By submitting, an inquiry email will be sent to our team and you&apos;ll connect via WhatsApp for faster response.
                   </p>
                 </form>
               )}
@@ -274,5 +419,6 @@ export default function InquiryForm() {
         </div>
       </div>
     </section>
+    </>
   );
 }
